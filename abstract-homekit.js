@@ -6,6 +6,7 @@ const capabilityMap = {
 	'cap:actions': addSwitch,
 	'cap:temperature': addTemperatureSensor,
 	'cap:motion': addMotionSensor,
+	'cap:contact': addContactSensor,
 	'cap:illuminance': addIllumination,
 	'cap:battery-level': addBatteryLevel,
 	'cap:relative-humidity': addHumidity,
@@ -121,6 +122,28 @@ function addMotionSensor(device, accessory) {
 	device.on('inactivity', event => {
 		log.debug(`It's over now'`);
 		motionEvent.updateValue(false);
+	});
+}
+
+function addContactSensor(device, accessory) {
+	log.debug("Adding Contact Sensor service");
+
+	const service = accessory.findOrCreateService(Service.ContactSensor, "Contact");
+	const contactEvent = service.getCharacteristic(Characteristic.ContactSensorState);
+
+	device.on('opened', (value) => {
+		log.debug(`Contact opened.`);
+		contactEvent.updateValue(true);
+	});
+
+	device.on('closed', () => {
+		log.debug(`Contact closed.`);
+		contactEvent.updateValue(false);
+	});
+
+	device.isOpen().then(state => {
+		log.debug(`Received initial Contact isOpen:`, state);
+		contactEvent.updateValue(state.value);
 	});
 }
 
